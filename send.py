@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 from queue import Queue
 from threading import Thread
 import logging
+from time import time
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -72,10 +74,11 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--message", help="file that contains the message")
     parser.add_argument("-b", "--balance", action="store_true", help="See the available balance")
     parser.add_argument("-c", "--count", help="Count numbers available to send")
-    parser.add_argument("-t", "--threads", default=5, type=int, help="Threads to boost the speed")
+    parser.add_argument("-t", "--threads", default=5, type=int, help="Threads to boost the speed, Default = 5")
     args = parser.parse_args()
 
     if args.numbers and args.message:
+        ts = time()
         queue = Queue()
         for x in range(args.threads):
             worker = SmsWorker(queue)
@@ -85,9 +88,10 @@ if __name__ == "__main__":
         numbers = load_file(args.numbers)
 
         for number in numbers:
-            logger.info('Queueing {} {}'.format(number, args.message))
+            # logger.info('Queueing {} {}'.format(number, args.message))
             queue.put((number, args.message))
         queue.join()
+        # logging.info('Took %s', time() - ts)
 
     elif args.balance:
         print("Your available balance is {} euro\n".format(show_balance()))
