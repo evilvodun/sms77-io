@@ -2,58 +2,64 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import fileinput
-import re
 from pathlib import Path
 import argparse
 from sms77api.Sms77api import Sms77api
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+SMS77IO_API_KEY = os.getenv('SMS77IO_API_KEY')
+client = Sms77api(SMS77IO_API_KEY)
 
-# def prRed(skk): print("\033[91m {}\033[00m" .format(skk))
-# def prGreen(skk): print("\033[92m {}\033[00m" .format(skk))
-# def prYellow(skk): print("\033[93m {}\033[00m" .format(skk))
-# def prLightPurple(skk): print("\033[94m {}\033[00m" .format(skk))
-# def prPurple(skk): print("\033[95m {}\033[00m" .format(skk))
-# def prCyan(skk): print("\033[96m {}\033[00m" .format(skk))
-# def prLightGray(skk): print("\033[97m {}\033[00m" .format(skk))
-# def prBlack(skk): print("\033[98m {}\033[00m" .format(skk))
+def load_file(numbers):
+    folder_db = "input"
+    path = Path(f'{folder_db}/{numbers}')
+    return [number for line in open(path, 'r') for number in line.split()]
 
-def save_to_file(message, output_type):
+def log(type, message):
     folder_db = "output"
-    path = Path(f'{folder_db}/{output_type}.txt')
+    path = Path(f'{folder_db}/{type}.txt')
     f = open(path, "a+")
-    f.write(f'{message}\n')
+    f.write(f'{message}')
     f.close()
 
+def show_balance():
+    return client.balance()
+
+def count_numbers(numbers):
+    folder_db = "input"
+    path = Path(f'{folder_db}/{numbers}')
+    return [number for line in open(path, 'r') for number in line.split()]
 
 def send_message(numbers, message):
-    for lines in fileinput.input([numbers]):
-        try:
-            email = re.search(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", lines).group()
-        except AttributeError:
-            print("\033[91m ERROR - {} \033[00m".format(lines.strip()))
-            errors = errors + 1
-            # break
 
-        # print("\033[93m Line: {} , Email {} \033[00m".format(lines.strip(), email))
-        domain = email.split("@")[1].split(".")[0]
-        filename = email.split("@")[1].lower()
+    numbers = load_file(numbers)
+    message = load_file(message)
 
-
-    print("No. of lines printed: {:,.2f}".format(count))
-    print("No. of excluded domains found: {:,.2f}".format(found))
-    print("No. of domains found: {:,.2f}".format(not_found))
-    print("No. of errors found: {:,.2f}".format(errors))
-
+    for number in numbers:
+        res = client.sms(number, message[0], {'json': True})
+        if(res['success'] == 100):
+            print(f'\033[92m Message Sent succesfully to {number} \033[00m')
+            log("success", "{}\n".format(number))
+        else:
+            print("\033[91m Message not sent to {} - {} \033[00m".format(number, res['messages'][0]['error_text']))
+            log("error", "{}\n".format(number))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Send SMS with sms77.io')
     parser.add_argument("-n", "--numbers", help="file that contains phone numbers")
     parser.add_argument("-m", "--message", help="file that contains the message")
+    parser.add_argument("-b", "--balance", action="store_true", help="See the available balance")
+    parser.add_argument("-t", "--total", help="Count numbers avalable to send")
     args = parser.parse_args()
 
     if args.numbers and args.message:
         send_message(args.numbers, args.message)
+    elif args.balance:
+        print("Your available balance is {} euro\n".format(show_balance()))
+    elif args.total:
+        print("{} Phone numbers available\n".format(len(count_numbers(args.total))))
     else:
         parser.print_help()
         sys.exit(0)
