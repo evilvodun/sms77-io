@@ -54,12 +54,10 @@ def count_numbers(numbers):
     path = Path(f'{folder_db}/{numbers}')
     return [number for line in open(path, 'r') for number in line.split()]
 
-def send_message(numbers, message):
+def send_message(number, message):
 
-    # numbers = load_file(numbers)
     message = load_file(message)
 
-    # for number in numbers:
     res = client.sms(number, message[0], {'json': True})
     if(res['success'] == 100):
         print(f'\033[92m Message Sent succesfully to {number} \033[00m')
