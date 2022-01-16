@@ -9,6 +9,7 @@ This is a simple sms api based sender.
 
 It was tested with **python3**.
 Make sure you have installed **python3** before you install anrun it.
+Add in .env file the secret API code from sms77.io.
 
 ```bash
 chmod +x install.sh
