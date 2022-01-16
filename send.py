@@ -6,6 +6,8 @@ import fileinput
 import re
 from pathlib import Path
 import argparse
+from sms77api.Sms77api import Sms77api
+
 
 # def prRed(skk): print("\033[91m {}\033[00m" .format(skk))
 # def prGreen(skk): print("\033[92m {}\033[00m" .format(skk))
@@ -16,24 +18,16 @@ import argparse
 # def prLightGray(skk): print("\033[97m {}\033[00m" .format(skk))
 # def prBlack(skk): print("\033[98m {}\033[00m" .format(skk))
 
-def save_to_file(domain, email):
-    folder_db = "../new_email_database"
-    path = Path(f'{folder_db}/{domain}.txt')
+def save_to_file(message, output_type):
+    folder_db = "output"
+    path = Path(f'{folder_db}/{output_type}.txt')
     f = open(path, "a+")
-    f.write(f'{email}\n')
+    f.write(f'{message}\n')
     f.close()
 
 
-def open_file(file):
-
-
-    # keeps a track of number of lines in the file
-    count = 0
-    found = 0
-    not_found = 0
-    errors = 0
-
-    for lines in fileinput.input([file]):
+def send_message(numbers, message):
+    for lines in fileinput.input([numbers]):
         try:
             email = re.search(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", lines).group()
         except AttributeError:
@@ -58,8 +52,8 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--message", help="file that contains the message")
     args = parser.parse_args()
 
-    if args.file:
-        open_file(args.file)
+    if args.numbers and args.message:
+        send_message(args.numbers, args.message)
     else:
         parser.print_help()
         sys.exit(0)
