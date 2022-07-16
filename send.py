@@ -59,7 +59,7 @@ def send_message(number, message):
     message = load_file(message)
 
     res = client.sms(number, message[0], {'json': True})
-    if(res['success'] == 100):
+    if(int(res['success']) == 100):
         print(f'\033[92m Message Sent succesfully to {number} \033[00m')
         log("success", "{}\n".format(number))
     else:

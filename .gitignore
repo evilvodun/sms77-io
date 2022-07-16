@@ -1,0 +1,6 @@
+sender/
+output/success.txt
+output/error.txt
+input/message.txt
+input/numbers.txt
+.env
